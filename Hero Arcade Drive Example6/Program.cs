@@ -9,20 +9,20 @@ using CTRE.Phoenix.Controller;
 using CTRE.Phoenix.MotorControl;
 using CTRE.Phoenix.MotorControl.CAN;
 
-//Deploy to Board
-//Fix IDs of Talons
+//Make sure Axises are right for controller?
+//Check firmware of Talons - too old?
 //Lights - add over current on a motor, brown out, robot powered on
-//Fix Drivetrain (Axis 1 and 4)
 //Keep reading manual for Emergency Stop and other light indicators for board
-//Put on Github
 
 namespace Hero_Arcade_Drive {
     public class Program {
 
-        static TalonSRX rightSlave = new TalonSRX(0);
-        static TalonSRX right = new TalonSRX(1);
-        static TalonSRX leftSlave = new TalonSRX(2);
-        static TalonSRX left = new TalonSRX(3);
+        static TalonSRX rightSlave = new TalonSRX(1);
+        static TalonSRX right = new TalonSRX(2);
+        static TalonSRX leftSlave = new TalonSRX(3);
+        static TalonSRX left = new TalonSRX(4);
+
+        static PowerDistributionPanel pdp = new PowerDistributionPanel(0);
 
         static StringBuilder stringBuilder = new StringBuilder();
 
@@ -30,8 +30,11 @@ namespace Hero_Arcade_Drive {
         static GameController Joy = new GameController(UsbHostDevice.GetInstance());
 
         // Indicator lights
-        static OutputPort battery_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin3, false);
-        static OutputPort connection_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin6, false);
+        static OutputPort low_battery_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin3, false);
+        static OutputPort connection_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin4, false);
+        static OutputPort current_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin5, false);
+        static OutputPort power_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin6, false); //Is code needed for this?
+        static OutputPort brownout_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin7, false);
 
         // Deadzone taken from FRC bot
         static void Deadzone(ref double value) {
@@ -52,29 +55,29 @@ namespace Hero_Arcade_Drive {
 
         static void Drive() {
 
-            double x = Joy.GetAxis(0);
-            double y = -1 * Joy.GetAxis(1);
-            double twist = Joy.GetAxis(2);
+            double forward = Joy.GetAxis(1);
+            double turn = Joy.GetAxis(4); //Changed from one to four and took out negative
+            //double twist = Joy.GetAxis(2); Is this needed?
 
-            Deadzone(ref x);
-            Deadzone(ref y);
-            Deadzone(ref twist);
+            Deadzone(ref forward);
+            Deadzone(ref turn);
+            //Deadzone(ref twist);
 
-            double leftThrot = y + twist;
-            double rightThrot = y - twist;
+            double leftThrot = turn - forward;
+            double rightThrot = turn + forward;
 
             left.Set(ControlMode.PercentOutput, leftThrot);
             leftSlave.Set(ControlMode.PercentOutput, leftThrot);
-            right.Set(ControlMode.PercentOutput, -rightThrot);
-            rightSlave.Set(ControlMode.PercentOutput, -rightThrot);
+            right.Set(ControlMode.PercentOutput, rightThrot);
+            rightSlave.Set(ControlMode.PercentOutput, rightThrot);
 
             stringBuilder.Append("\t");
-            stringBuilder.Append(x);
+            stringBuilder.Append(forward);
             stringBuilder.Append("\t");
-            stringBuilder.Append(y);
+            stringBuilder.Append(turn);
             stringBuilder.Append("\t");
-            stringBuilder.Append(twist);
-            stringBuilder.Append("\t");
+            //stringBuilder.Append(twist);
+            //stringBuilder.Append("\t");
 
             // Print connection status
             stringBuilder.Append(Joy.GetConnectionStatus());
@@ -96,11 +99,20 @@ namespace Hero_Arcade_Drive {
                     stringBuilder.Append("WARNING: Watchdog not fed");
                 }
 
-                // Update indicator
+                // Update indicators
                 connection_pin.Write(Joy.GetConnectionStatus() == UsbDeviceConnection.Connected);
 
                 // Fix
-                battery_pin.Write(true);
+                low_battery_pin.Write(true);
+
+                // Fix
+                power_pin.Write(true);
+
+                // Fix
+                brownout_pin.Write(false);
+
+                // Fix
+                current_pin.Write(pdp.GetChannelCurrent(1) > 30);
 
                 Drive();
 
