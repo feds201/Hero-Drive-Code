@@ -11,7 +11,8 @@ using CTRE.Phoenix.MotorControl.CAN;
 
 //Deploy to Board
 //Fix IDs of Talons
-//Fix Drivetrain
+//Lights - add over current on a motor, brown out, robot powered on
+//Fix Drivetrain (Axis 1 and 4)
 //Keep reading manual for Emergency Stop and other light indicators for board
 //Put on Github
 
