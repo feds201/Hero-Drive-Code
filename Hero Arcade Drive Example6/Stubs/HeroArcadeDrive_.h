@@ -13,10 +13,10 @@
 #include <TinyCLR_Interop.h>
 struct Library_HeroArcadeDrive__Hero_Arcade_Drive_Program
 {
-    static const int FIELD_STATIC__rightSlave = 0;
-    static const int FIELD_STATIC__right = 1;
-    static const int FIELD_STATIC__leftSlave = 2;
-    static const int FIELD_STATIC__left = 3;
+    static const int FIELD_STATIC__backRight = 0;
+    static const int FIELD_STATIC__backLeft = 1;
+    static const int FIELD_STATIC__frontRight = 2;
+    static const int FIELD_STATIC__frontLeft = 3;
     static const int FIELD_STATIC__pdp = 4;
     static const int FIELD_STATIC__stringBuilder = 5;
     static const int FIELD_STATIC__Joy = 6;

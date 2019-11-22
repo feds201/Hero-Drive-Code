@@ -9,7 +9,6 @@ using CTRE.Phoenix.Controller;
 using CTRE.Phoenix.MotorControl;
 using CTRE.Phoenix.MotorControl.CAN;
 
-//Make sure Axises are right for controller?
 //Check firmware of Talons - too old?
 //Lights - add over current on a motor, brown out, robot powered on
 //Keep reading manual for Emergency Stop and other light indicators for board
@@ -17,10 +16,10 @@ using CTRE.Phoenix.MotorControl.CAN;
 namespace Hero_Arcade_Drive {
     public class Program {
 
-        static TalonSRX rightSlave = new TalonSRX(1);
-        static TalonSRX right = new TalonSRX(2);
-        static TalonSRX leftSlave = new TalonSRX(3);
-        static TalonSRX left = new TalonSRX(4);
+        static TalonSRX backRight = new TalonSRX(5); //5 was 1 before
+        static TalonSRX backLeft = new TalonSRX(2);
+        static TalonSRX frontRight = new TalonSRX(3);
+        static TalonSRX frontLeft = new TalonSRX(4);
 
         static PowerDistributionPanel pdp = new PowerDistributionPanel(0);
 
@@ -35,6 +34,8 @@ namespace Hero_Arcade_Drive {
         static OutputPort current_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin5, false);
         static OutputPort power_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin6, false); //Is code needed for this?
         static OutputPort brownout_pin = new OutputPort(CTRE.HERO.IO.Port3.Pin7, false);
+        
+        /**************************************************************************************************************************************************/
 
         // Deadzone taken from FRC bot
         static void Deadzone(ref double value) {
@@ -53,40 +54,44 @@ namespace Hero_Arcade_Drive {
             }
         }
 
+        /**************************************************************************************************************************************************/
+
         static void Drive() {
 
             double forward = Joy.GetAxis(1);
-            double turn = Joy.GetAxis(4); //Changed from one to four and took out negative
-            //double twist = Joy.GetAxis(2); Is this needed?
+            double turn = Joy.GetAxis(2); 
 
             Deadzone(ref forward);
             Deadzone(ref turn);
-            //Deadzone(ref twist);
 
             double leftThrot = turn - forward;
             double rightThrot = turn + forward;
 
-            left.Set(ControlMode.PercentOutput, leftThrot);
-            leftSlave.Set(ControlMode.PercentOutput, leftThrot);
-            right.Set(ControlMode.PercentOutput, rightThrot);
-            rightSlave.Set(ControlMode.PercentOutput, rightThrot);
+            backLeft.Set(ControlMode.PercentOutput, leftThrot);
+            frontLeft.Set(ControlMode.PercentOutput, leftThrot);
+            backRight.Set(ControlMode.PercentOutput, rightThrot);
+            frontRight.Set(ControlMode.PercentOutput, rightThrot);
 
             stringBuilder.Append("\t");
             stringBuilder.Append(forward);
             stringBuilder.Append("\t");
             stringBuilder.Append(turn);
             stringBuilder.Append("\t");
-            //stringBuilder.Append(twist);
-            //stringBuilder.Append("\t");
 
             // Print connection status
             stringBuilder.Append(Joy.GetConnectionStatus());
 
         }
 
+        /**************************************************************************************************************************************************/
+
         public static void Main() {
 
             while (true) {
+
+                CTRE.Phoenix.Watchdog.Feed();
+
+                low_battery_pin.Write(true);
 
                 // From PDF - if controller is connected enable HERO Board
                 if (Joy.GetConnectionStatus() == UsbDeviceConnection.Connected) {
@@ -102,14 +107,47 @@ namespace Hero_Arcade_Drive {
                 // Update indicators
                 connection_pin.Write(Joy.GetConnectionStatus() == UsbDeviceConnection.Connected);
 
-                // Fix
-                low_battery_pin.Write(true);
+                //Current Limits 
+	            backRight.ConfigContinuousCurrentLimit(40, 10);
+	            backRight.ConfigPeakCurrentLimit(60, 10);
+	            backRight.ConfigPeakCurrentDuration(400, 10);
+	            backRight.EnableCurrentLimit(true);
+
+	            backLeft.ConfigContinuousCurrentLimit(40, 10);
+	            backLeft.ConfigPeakCurrentLimit(60, 10);
+	            backLeft.ConfigPeakCurrentDuration(400, 10);
+	            backLeft.EnableCurrentLimit(true);
+
+	            frontRight.ConfigContinuousCurrentLimit(40, 10);
+	            frontRight.ConfigPeakCurrentLimit(60, 10);
+	            frontRight.ConfigPeakCurrentDuration(400, 10);
+	            frontRight.EnableCurrentLimit(true);
+
+	            frontLeft.ConfigContinuousCurrentLimit(40, 10);
+	            frontLeft.ConfigPeakCurrentLimit(60, 10);
+	            frontLeft.ConfigPeakCurrentDuration(400, 10);
+	            frontLeft.EnableCurrentLimit(true);
+
+                // Low battery 
+                if (pdp.GetVoltage() < 10) {
+                    low_battery_pin.Write(true);
+                }
+                
+                else {
+                    low_battery_pin.Write(false);
+                }
 
                 // Fix
                 power_pin.Write(true);
 
-                // Fix
-                brownout_pin.Write(false);
+                // Brownout
+                if (pdp.GetVoltage() < 8) {
+                    brownout_pin.Write(true);
+                }
+
+                else {
+                    brownout_pin.Write(false);
+                }
 
                 // Fix
                 current_pin.Write(pdp.GetChannelCurrent(1) > 30);

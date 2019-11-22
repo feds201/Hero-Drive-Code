@@ -2,7 +2,7 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FeatureName>_HeroArcadeDrive</FeatureName>
-    <Guid>{aca7b49e-2a52-4fbd-93c8-8564a8315b2f}</Guid>
+    <Guid>{e03a18d0-d6bf-4dfe-9aba-87aa5cf97292}</Guid>
     <Description>&lt;Add Feature Description Here&gt;</Description>
     <Groups />
     <_HEROARCADEDRIVE_FEATUREPROJ>True</_HEROARCADEDRIVE_FEATUREPROJ>
