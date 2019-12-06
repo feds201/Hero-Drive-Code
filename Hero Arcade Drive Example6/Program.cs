@@ -16,10 +16,15 @@ using CTRE.Phoenix.MotorControl.CAN;
 namespace Hero_Arcade_Drive {
     public class Program {
 
-        static TalonSRX backRight = new TalonSRX(5); //5 was 1 before
+        /*static TalonSRX backRight = new TalonSRX(5); //5 was 1 before
         static TalonSRX backLeft = new TalonSRX(2);
         static TalonSRX frontRight = new TalonSRX(3);
-        static TalonSRX frontLeft = new TalonSRX(4);
+        static TalonSRX frontLeft = new TalonSRX(4);*/
+
+        static TalonSRX frontLeft = new TalonSRX(5); //5 was 1 before
+        static TalonSRX frontRight = new TalonSRX(2);
+        static TalonSRX backLeft = new TalonSRX(3);
+        static TalonSRX backRight = new TalonSRX(4);
 
         static PowerDistributionPanel pdp = new PowerDistributionPanel(0);
 
@@ -67,10 +72,23 @@ namespace Hero_Arcade_Drive {
             double leftThrot = turn - forward;
             double rightThrot = turn + forward;
 
-            backLeft.Set(ControlMode.PercentOutput, leftThrot);
-            frontLeft.Set(ControlMode.PercentOutput, leftThrot);
-            backRight.Set(ControlMode.PercentOutput, rightThrot);
-            frontRight.Set(ControlMode.PercentOutput, rightThrot);
+            /*backLeft.SetInverted(true);
+            frontLeft.SetInverted(true);
+            backRight.SetInverted(true);
+            frontRight.SetInverted(true);/*
+
+            //double newLThrot = -0.7 * leftThrot;
+            //double newRThrot = -0.7 * rightThrot;
+
+            /*backLeft.Set(ControlMode.PercentOutput, newLThrot);
+            frontLeft.Set(ControlMode.PercentOutput, newLThrot);
+            backRight.Set(ControlMode.PercentOutput, newRThrot);
+            frontRight.Set(ControlMode.PercentOutput, newRThrot);*/
+
+            backLeft.Set(ControlMode.PercentOutput, leftThrot * 0.55);
+            frontLeft.Set(ControlMode.PercentOutput, leftThrot * 0.55);
+            backRight.Set(ControlMode.PercentOutput, rightThrot * 0.55);
+            frontRight.Set(ControlMode.PercentOutput, rightThrot * 0.55);
 
             stringBuilder.Append("\t");
             stringBuilder.Append(forward);
@@ -81,6 +99,8 @@ namespace Hero_Arcade_Drive {
             // Print connection status
             stringBuilder.Append(Joy.GetConnectionStatus());
 
+            stringBuilder.Append(pdp.GetVoltage() + "volts");
+
         }
 
         /**************************************************************************************************************************************************/
@@ -90,8 +110,6 @@ namespace Hero_Arcade_Drive {
             while (true) {
 
                 CTRE.Phoenix.Watchdog.Feed();
-
-                low_battery_pin.Write(true);
 
                 // From PDF - if controller is connected enable HERO Board
                 if (Joy.GetConnectionStatus() == UsbDeviceConnection.Connected) {
@@ -105,7 +123,7 @@ namespace Hero_Arcade_Drive {
                 }
 
                 // Update indicators
-                connection_pin.Write(Joy.GetConnectionStatus() == UsbDeviceConnection.Connected);
+                //connection_pin.Write(Joy.GetConnectionStatus() == UsbDeviceConnection.Connected);
 
                 //Current Limits 
 	            backRight.ConfigContinuousCurrentLimit(40, 10);
@@ -128,7 +146,7 @@ namespace Hero_Arcade_Drive {
 	            frontLeft.ConfigPeakCurrentDuration(400, 10);
 	            frontLeft.EnableCurrentLimit(true);
 
-                // Low battery 
+                /*// Low battery 
                 if (pdp.GetVoltage() < 10) {
                     low_battery_pin.Write(true);
                 }
@@ -150,10 +168,10 @@ namespace Hero_Arcade_Drive {
                 }
 
                 // Fix
-                current_pin.Write(pdp.GetChannelCurrent(1) > 30);
+                current_pin.Write(pdp.GetChannelCurrent(1) > 30);*/
 
                 Drive();
-
+                
                 Debug.Print(stringBuilder.ToString());
                 stringBuilder.Clear();
 
